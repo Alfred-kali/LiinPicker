@@ -5,14 +5,20 @@ import socket
 import platform
 import getpass
 import os
+import sys
 from datetime import datetime
 
 # ========== НАСТРОЙКИ ==========
-SERVER_IP = "127.0.0.1"  # IP адрес сервера (где запущен admin.py)
-SERVER_PORT = 9999  # Порт (должен совпадать с admin.py)
-
-
+# IP можно передать как аргумент: python start.py 192.168.1.100
+DEFAULT_SERVER_IP = "127.0.0.1"
+SERVER_PORT = 9999
 # ================================
+
+def get_server_ip():
+    """Получает IP сервера из аргумента командной строки"""
+    if len(sys.argv) > 1:
+        return sys.argv[1]
+    return DEFAULT_SERVER_IP
 
 def get_system_info():
     """Собирает информацию о системе"""
@@ -27,12 +33,10 @@ def get_system_info():
         "ip_local": socket.gethostbyname(socket.gethostname()),
     }
 
-
-def send_data():
+def send_data(server_ip):
     """Отправляет данные на сервер"""
     info = get_system_info()
 
-    # Форматируем данные для отправки
     message = f"""
 [НОВОЕ ПОДКЛЮЧЕНИЕ]
 Время: {info['timestamp']}
@@ -45,21 +49,20 @@ IP: {info['ip_local']}
 ---"""
 
     try:
-        # Подключаемся к серверу
         client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        client.connect((SERVER_IP, SERVER_PORT))
+        client.connect((server_ip, SERVER_PORT))
         client.send(message.encode('utf-8'))
         client.close()
-        print("✅ Данные отправлены")
+        print(f"✅ Данные отправлены на {server_ip}:{SERVER_PORT}")
         return True
     except ConnectionRefusedError:
-        print("❌ Сервер не запущен. Запусти admin.py")
+        print(f"❌ Сервер не запущен на {server_ip}:{SERVER_PORT}")
         return False
     except Exception as e:
         print(f"❌ Ошибка: {e}")
         return False
 
-
 if __name__ == "__main__":
-    print("📡 Отправка данных на сервер...")
-    send_data()
+    server_ip = get_server_ip()
+    print(f"📡 Отправка данных на сервер {server_ip}:{SERVER_PORT}...")
+    send_data(server_ip)
